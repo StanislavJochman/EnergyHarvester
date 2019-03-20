@@ -17,8 +17,12 @@
 #define SR A6
 //----------------
 #define led 7
+//----------------
+#define button 10
 
+int line_value;
 long time_elapsed = millis();
+bool low_battery = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -33,36 +37,56 @@ void setup() {
   pinMode(led,OUTPUT);
   //----------------
   pinMode(INT_G,INPUT);
+  pinMode(button,INPUT_PULLUP);
   //----------------  
   digitalWrite(ON_OPT,HIGH);
   ChangeLed(0);
+  bool high_battery = 0;
+  while(true){
+    if(ReadButton()==1){
+      break;  
+    }
+    else if(ReadBatteryVoltage()>81){
+      if(high_battery == 0){    
+        for(int x=0;x<10;x++){
+          ChangeLed(1);
+          delay(50);
+          ChangeLed(0);
+          delay(50);
+        }
+        high_battery = 1;
+      }
+    }
+  }
 }
 
 void loop() {
-  if(millis() - time_elapsed > 1000){
+  if(millis() - time_elapsed > 5000){
     time_elapsed = millis();
     if(ReadBatteryVoltage()<60){
+      low_battery = 1;
+      RunMotor("AB",0);
+      Glow(0);
       ChangeLed(1);
       delay(50);
       ChangeLed(0);
     }
+    else{
+      low_battery = 0;  
+    }
   }
   else{
-    ChangeLed(0);
-    Glow(1);
-    Serial.print(analogRead(SL));
-    Serial.print("  ");
-    Serial.print(analogRead(SL));
-    Serial.print("  ");
-    Serial.println(ReadBatteryVoltage());
-  
-    
-    if(analogRead(SL)>50 && analogRead(SR)>50){
-      RunMotor("AB",180);
-    }
-    else{
-      RunMotor("AB",0);
-      
+    if(low_battery == 0){
+      Glow(1);
+      if(analogRead(SL)>70){
+        RunMotor("A",0);
+      }
+      else if(analogRead(SR)<70){
+        RunMotor("B",0);
+      }
+      else{
+        RunMotor("AB",60);
+      }
     }
   }
 }
@@ -137,4 +161,7 @@ void Glow(bool state){
 int ReadBatteryVoltage(){
   int battery_voltage = map(analogRead(VBAT),0,320,0,100);
   return battery_voltage;
+}
+bool ReadButton(){
+  return !digitalRead(button);  
 }
