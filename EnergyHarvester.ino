@@ -30,15 +30,25 @@ void setup() {
   pinMode(INT_G,INPUT);
   //----------------  
   digitalWrite(ON_OPT,HIGH);
+  ChangeLed(0);
 }
 
 void loop() {
+  Glow(1);
   Serial.print(analogRead(SL));
   Serial.print("  ");
-  Serial.println(analogRead(SR));
-  
-  RunMotor("AB",255);
-  blink_led(50);
+  Serial.print(analogRead(SL));
+  Serial.print("  ");
+  Serial.println(ReadBatteryVoltage());
+
+  /*
+  if(analogRead(SL)>50 && analogRead(SR)>50){
+    RunMotor("AB",180);
+  }
+  else{
+    RunMotor("AB",0);
+    
+  }*/
 }
 void RunMotor (String motor_select,int speed) {
   if (motor_select == "A") {
@@ -55,7 +65,7 @@ void RunMotor (String motor_select,int speed) {
     else {
       digitalWrite(ENA,LOW);
       digitalWrite(INA1,LOW);
-      analogWrite(INA2,LOW);  
+      digitalWrite(INA2,LOW);  
     }     
   }
   
@@ -75,7 +85,7 @@ void RunMotor (String motor_select,int speed) {
     else {
       digitalWrite(ENB,LOW);
       digitalWrite(INB1,LOW);
-      analogWrite(INB2,LOW);  
+      digitalWrite(INB2,LOW);  
     }
   }
 
@@ -102,16 +112,20 @@ void RunMotor (String motor_select,int speed) {
       digitalWrite(ENB,LOW);
       digitalWrite(INA1,LOW);
       digitalWrite(INB1,LOW);
-      analogWrite(INA2,LOW);  
-      analogWrite(INB2,LOW);  
+      digitalWrite(INA2,LOW);  
+      digitalWrite(INB2,LOW);  
     }
   }
 
 
 }
-void blink_led(int time){
-  digitalWrite(led,HIGH);
-  delay(time);
-  digitalWrite(led,LOW);
-  delay(time);
+void ChangeLed(bool state){
+  digitalWrite(led,!state);
+}
+void Glow(bool state){
+  digitalWrite(ON_OPT,!state);  
+}
+int ReadBatteryVoltage(){
+  int battery_voltage = map(analogRead(VBAT),0,320,0,100);
+  return battery_voltage;
 }
