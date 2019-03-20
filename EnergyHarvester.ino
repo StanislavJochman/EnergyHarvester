@@ -1,3 +1,5 @@
+#include "LowPower.h"
+
 #define INA1 11
 #define INA2 3
 #define ENA 2
@@ -15,6 +17,9 @@
 #define SR A6
 //----------------
 #define led 7
+
+long time_elapsed = millis();
+
 void setup() {
   Serial.begin(9600);
   pinMode(INA1,OUTPUT);
@@ -34,21 +39,32 @@ void setup() {
 }
 
 void loop() {
-  Glow(1);
-  Serial.print(analogRead(SL));
-  Serial.print("  ");
-  Serial.print(analogRead(SL));
-  Serial.print("  ");
-  Serial.println(ReadBatteryVoltage());
-
-  /*
-  if(analogRead(SL)>50 && analogRead(SR)>50){
-    RunMotor("AB",180);
+  if(millis() - time_elapsed > 1000){
+    time_elapsed = millis();
+    if(ReadBatteryVoltage()<60){
+      ChangeLed(1);
+      delay(50);
+      ChangeLed(0);
+    }
   }
   else{
-    RunMotor("AB",0);
+    ChangeLed(0);
+    Glow(1);
+    Serial.print(analogRead(SL));
+    Serial.print("  ");
+    Serial.print(analogRead(SL));
+    Serial.print("  ");
+    Serial.println(ReadBatteryVoltage());
+  
     
-  }*/
+    if(analogRead(SL)>50 && analogRead(SR)>50){
+      RunMotor("AB",180);
+    }
+    else{
+      RunMotor("AB",0);
+      
+    }
+  }
 }
 void RunMotor (String motor_select,int speed) {
   if (motor_select == "A") {
@@ -68,9 +84,6 @@ void RunMotor (String motor_select,int speed) {
       digitalWrite(INA2,LOW);  
     }     
   }
-  
-
-  
   else if (motor_select == "B") {
     if (speed > 0) {
       digitalWrite(ENB,HIGH);
@@ -88,8 +101,6 @@ void RunMotor (String motor_select,int speed) {
       digitalWrite(INB2,LOW);  
     }
   }
-
-  
   else {
     if (speed > 0) {
       digitalWrite(ENA,HIGH);
@@ -116,8 +127,6 @@ void RunMotor (String motor_select,int speed) {
       digitalWrite(INB2,LOW);  
     }
   }
-
-
 }
 void ChangeLed(bool state){
   digitalWrite(led,!state);
