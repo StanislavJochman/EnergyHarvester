@@ -44,6 +44,13 @@ void setup() {
   bool high_battery = 0;
   while(true){
     if(ReadButton()==1){
+      CalibrateLine();
+      for(int x=0;x<3;x++){
+          ChangeLed(1);
+          delay(300);
+          ChangeLed(0);
+          delay(300);
+        }
       break;  
     }
     else if(ReadBatteryVoltage()>81){
@@ -57,13 +64,20 @@ void setup() {
         high_battery = 1;
       }
     }
+    Glow(1);
+    Serial.println(ReadBatteryVoltage());
   }
+  while(true){
+        if(ReadButton()==1){
+          break;
+        }
+      }
 }
 
 void loop() {
   if(millis() - time_elapsed > 5000){
     time_elapsed = millis();
-    if(ReadBatteryVoltage()<60){
+    if(ReadBatteryVoltage()<20){
       low_battery = 1;
       RunMotor("AB",0);
       Glow(0);
@@ -78,14 +92,14 @@ void loop() {
   else{
     if(low_battery == 0){
       Glow(1);
-      if(analogRead(SL)>70){
+      if(analogRead(SL)<line_value){
         RunMotor("A",0);
       }
-      else if(analogRead(SR)<70){
+      else if(analogRead(SR)<line_value){
         RunMotor("B",0);
       }
       else{
-        RunMotor("AB",60);
+        RunMotor("AB",70 + (160-ReadBatteryVoltage()*2));
       }
     }
   }
@@ -164,4 +178,7 @@ int ReadBatteryVoltage(){
 }
 bool ReadButton(){
   return !digitalRead(button);  
+}
+void CalibrateLine(){
+  line_value = (analogRead(SR) + analogRead(SL))/2 + 25; 
 }
