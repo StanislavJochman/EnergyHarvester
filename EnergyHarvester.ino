@@ -1,4 +1,5 @@
-#include "LowPower.h"
+//SMCR &= ~(1<<SM0)//nastavenie na 0
+//SMCR |= (1<<SM0)//nastavenie na 1
 
 #define INA1 11
 #define INA2 3
@@ -23,7 +24,8 @@
 int line_value;
 long time_elapsed = millis();
 bool low_battery = 0;
-
+int speed = 0;
+int speed_backward = 0;
 void setup() {
   Serial.begin(9600);
   pinMode(INA1,OUTPUT);
@@ -40,11 +42,12 @@ void setup() {
   pinMode(button,INPUT_PULLUP);
   //----------------  
   digitalWrite(ON_OPT,HIGH);
+  ADCNoiseReduction();
   ChangeLed(0);
   bool high_battery = 0;
   while(true){
     if(ReadButton()==1){
-      CalibrateLine();
+      CalibrateLine(15);
       for(int x=0;x<3;x++){
           ChangeLed(1);
           delay(300);
@@ -75,6 +78,8 @@ void setup() {
 }
 
 void loop() {
+  speed = 90 + (160-ReadBatteryVoltage()*1.5);
+  speed_backward = -speed / 2 - 30;
   if(millis() - time_elapsed > 5000){
     time_elapsed = millis();
     if(ReadBatteryVoltage()<20){
@@ -93,13 +98,15 @@ void loop() {
     if(low_battery == 0){
       Glow(1);
       if(analogRead(SL)<line_value){
-        RunMotor("A",0);
+        RunMotor("A",speed_backward);
+        delay(20);
       }
       else if(analogRead(SR)<line_value){
-        RunMotor("B",0);
+        RunMotor("B",speed_backward);
+        delay(20);
       }
       else{
-        RunMotor("AB",70 + (160-ReadBatteryVoltage()*2));
+        RunMotor("AB",speed);
       }
     }
   }
@@ -179,6 +186,10 @@ int ReadBatteryVoltage(){
 bool ReadButton(){
   return !digitalRead(button);  
 }
-void CalibrateLine(){
-  line_value = (analogRead(SR) + analogRead(SL))/2 + 25; 
+void CalibrateLine(int calibration){
+  line_value = (analogRead(SR) + analogRead(SL))/2 + calibration; 
+}
+void ADCNoiseReduction(){
+  SMCR |= (1<<SM0);
+  SMCR &= ~(1<<SM1 | 1<<SM2);
 }
