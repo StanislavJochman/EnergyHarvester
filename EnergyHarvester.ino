@@ -46,7 +46,7 @@ void setup() {
   bool high_battery = 0;
   while(true){
     if(ReadButton()==1){
-      CalibrateLine(10);
+      CalibrateLine(30);
       for(int x=0;x<3;x++){
           ChangeLed(1);
           delay(300);
@@ -55,7 +55,7 @@ void setup() {
         }
       break;  
     }
-    else if(ReadBatteryVoltage()>81){
+    else if(ReadBatteryVoltage()>85){
       if(high_battery == 0){    
         for(int x=0;x<10;x++){
           ChangeLed(1);
@@ -79,8 +79,9 @@ void setup() {
 }
 
 void loop() {
-  speed = 230 + (160-ReadBatteryVoltage()*1.5);
-  speed_backward = -speed/3;
+  //speed = 200 + (160-ReadBatteryVoltage()*1.5);
+  speed = 255;
+  speed_backward = -speed/5;
   if(millis() - time_elapsed > 5000){
     time_elapsed = millis();
     if(ReadBatteryVoltage()<20){
