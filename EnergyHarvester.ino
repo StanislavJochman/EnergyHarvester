@@ -42,12 +42,11 @@ void setup() {
   pinMode(button,INPUT_PULLUP);
   //----------------  
   digitalWrite(ON_OPT,HIGH);
-  ADCNoiseReduction();
   ChangeLed(0);
   bool high_battery = 0;
   while(true){
     if(ReadButton()==1){
-      CalibrateLine(15);
+      CalibrateLine(10);
       for(int x=0;x<3;x++){
           ChangeLed(1);
           delay(300);
@@ -68,7 +67,9 @@ void setup() {
       }
     }
     Glow(1);
-    Serial.println(ReadBatteryVoltage());
+    Serial.print(analogRead(SR));
+    Serial.print(" ");
+    Serial.println(analogRead(SL));
   }
   while(true){
         if(ReadButton()==1){
@@ -78,8 +79,8 @@ void setup() {
 }
 
 void loop() {
-  speed = 90 + (160-ReadBatteryVoltage()*1.5);
-  speed_backward = -speed / 2 - 30;
+  speed = 230 + (160-ReadBatteryVoltage()*1.5);
+  speed_backward = -speed/3;
   if(millis() - time_elapsed > 5000){
     time_elapsed = millis();
     if(ReadBatteryVoltage()<20){
@@ -97,13 +98,11 @@ void loop() {
   else{
     if(low_battery == 0){
       Glow(1);
-      if(analogRead(SL)<line_value){
+      if(analogRead(SL)>line_value){
         RunMotor("A",speed_backward);
-        delay(20);
       }
       else if(analogRead(SR)<line_value){
         RunMotor("B",speed_backward);
-        delay(20);
       }
       else{
         RunMotor("AB",speed);
